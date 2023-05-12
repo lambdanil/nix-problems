@@ -1,19 +1,21 @@
 * Introduction
 Let's talk about some of the issues with Nix and NixOS, and how Guix does these things better.
-I'll say upfront that you shouldn't expect tons of examples - this is a fairly quick writeup, though I might come back later and add examples.
+I'll say upfront that you shouldn't expect tons of examples - this is a fairly quick writeup, though I might come back later to revise sections and add more points.
 
 * Internal design issues
 ** Internal inconsistencies/issues
 *** Build system issues
 Guix uses so called [[https://guix.gnu.org/manual/en/html_node/Build-Systems.html][build systems]] - these ensure consistency in how packages are actually built across different toolchains and language ecosystems.
 
-- Each package ecosystem has it's own build system, these define certain dependencies and standard procedures used.
-  - This ensures consistency within this toolchain ecosystem.
-- All of these build systems are in a single place - this ensures consistency between the different build systems.
-- Combined these ensures /global/ consistency in the approaches used for different toolchains across different definitions.
-- This is a *simplified* explanation, since the full version would be too long.
+- Each package ecosystem has its own build system. These define certain dependencies and standard procedures used for handling packages within that ecosystem.
+  - Examples would include the Maven and TeX Live ecosystems.
+  - This ensures consistency within these ecosystems.
+- All of these build systems are in a single place (see points below) - this helps keep the different build systems consistent in behaviour.
+  - https://github.com/guix-mirror/guix/tree/master/guix/build
+  - https://guix.gnu.org/manual/en/html_node/Build-Systems.html
+- Combined these ensure /global/ consistency in the approaches used for handling different toolchains across all the definitions.
 - Nix /does/ have build phases, and even something similar to build systems, but...
-  - They aren't documented anywhere, at least as far as I could tell.
+  - These build systems aren't documented anywhere, at least as far as I could tell.
   - They are scattered all over ~nixpkgs~.
     - This makes the entire point about consistency void.
 *** Language issues
@@ -21,8 +23,8 @@ Guix uses so called [[https://guix.gnu.org/manual/en/html_node/Build-Systems.htm
   - While system calls do need to be invoked for certain builds, it's done exclusively with Guile too.
     - There is a mature and well documented set of different [[https://guix.gnu.org/manual/en/html_node/Build-Utilities.html][build utilities]] used to do this.
       - These also make package transformations more straightforward using the flexibility of Scheme macros.
-    - For example rather than arbitrarily calling a ~sed~ within a shell script like what Nix definitions sometimes do (), Guix uses the procedure ~substitute*~ instead.
-      - This keeps build scripts consistent with strictly single set of build utilities and a single language.
+    - For example rather than calling a ~sed~ within a shell script like what Nix definitions sometimes do, Guix uses the procedure ~substitute*~ instead.
+      - This keeps build scripts consistent with a single set of build utilities and a single language.
 - Now for the Nix language.
   - It's poorly documented.
   - The tooling is lacking, in part because it's used pretty exclusively for Nix.
@@ -36,30 +38,38 @@ Guix uses so called [[https://guix.gnu.org/manual/en/html_node/Build-Systems.htm
   - It isn't good as a general purpose language either (no libraries, no interest in using it outside of Nix).
   - There exist attempts to address these issues with different languages, for example [[https://github.com/tweag/nickel][Nickel]] has such aspirations.
     - I recommend reading [[https://www.tweag.io/blog/2023-01-24-nix-with-with-nickel/][this blogpost]], it goes over some of the issues of Nix.
-  - Guix addresses these issues by using a language that's properly general purpose and more flexible with it's very powerful macro system.
-    - Fun fact:
-      Guix's init system, *GNU Shepherd* is also written in Scheme, along with the entire CLI interface and every other part of the Guix system, aside from the daemon - further proving it's capability as a GPL.
+  - Guix addresses these issues by using a language that's properly general purpose and more flexible with its very powerful macro system.
+    - Guix's init system, *GNU Shepherd* is also written in Scheme, along with the entire CLI interface and every other part of the Guix system, aside from the daemon - further proving it's capability as a GPL.
 **** Debugging      
   - Nix is also known for being rather difficult to debug (see discussion [[https://www.reddit.com/r/NixOS/comments/itx32w/tips_for_debugging/][here]]).
-    - Tons of recursion is used - in practice this makes stuff like copying objects rather difficult.
-      - Infinite recursion is difficult to debug as well, and rather easy to introduce - see below.
-    - https://nix.dev/anti-patterns/language - this speaks for itself.
+    - Recursion is used heavily - in practice this makes stuff like copying objects rather difficult.
+      - Infinite recursion can be difficult to debug and is rather easy to introduce - see below.
+    - https://nix.dev/anti-patterns/language
 *** Package QC issues
 - Nixpkgs commits aren't signed - see https://github.com/NixOS/rfcs/pull/100 (at least it's being worked on... slowly).
-- Overall quality of definitions in Nixpkgs is much lower than Guix - [[https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules][many R packages are autogenerated]] and thus broken.
-  - Many packages also aren't bootstrapped properly, instead repackaging ~.deb~ packages and the like.
+- Overall quality of definitions in Nixpkgs isn't always great - [[https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/r-modules][many R packages are autogenerated]] and thus broken.
+  - Many packages also aren't bootstrapped properly, instead patching and repackaging ~.deb~ packages and the like.
     - [[https://guix.gnu.org/en/blog/2023/the-full-source-bootstrap-building-from-source-all-the-way-down/][Guix focuses on proper bootstrapping heavily]].
-  - These is a ton of patching going on to resolve incompatability issues, though Guix is also affected by this (to a lesser degree, thanks to proper bootstrapping).
-*** No grafts equivalent
+  - These is a ton of patching going on to resolve FHS incompatability issues (Guix is also affected by this).
+*** Missing features
+First of all grafts. What are they?
 #+BEGIN_QUOTE
-Grafts are Guix' way of not rebuilding the world when an important security is rolled out. Basically, they allow you to build and link against old versions of a library while running the program against a new one. Traditional distros do that all the time and you don't even notice, but on Guix you actually have two versions of that library still lying around. The ungrafted one and the grafted one.
+Grafts are Guix' way of not rebuilding the world when an important security is rolled out. Basically, they allow you to build and link against old versions of a library while running the program against a new one. Traditional distros do that all the time and you don't even notice, but on Guix you actually have two versions of that library still lying around. The ungrafted one and the grafted one. -- Guix documentation
 #+END_QUOTE
-- To my knowledge Nix has no such thing.
+To my knowledge Nix has no such thing.
+
+Nix also doesn't have FHS emulation or an equivalent to ~guix pack~.
+  - https://guix.gnu.org/manual/en/html_node/Invoking-guix-pack.html
+  - https://guix.gnu.org/blog/2023/the-filesystem-hierarchy-standard-comes-to-guix-containers/
 
 ** User experience issues
 *** Documentation
 - As I have mentioned multiple times before, the Nix documentation is infamously bad, see the blogpost below.
-- https://ostina.to/posts/2019-03-29-why-nixos-is-hard-and-how-to-fix.html
+  - https://ostina.to/posts/2019-03-29-why-nixos-is-hard-and-how-to-fix.html
+- The Nix manual is also comparatively poor compared to what Guix offers (which includes a "cookbook" full of examples)
+  - https://nixos.org/manual/nix/stable/
+  - https://guix.gnu.org/en/manual/en/guix.html
+  - https://guix.gnu.org/en/cookbook/en/guix-cookbook.html
 *** nix-env
 - [[https://nixos.org/manual/nix/stable/command-ref/nix-env.html][nix-env]] is considered bad by a big part of the community ([[https://discourse.nixos.org/t/depreciate-the-use-of-nix-env-to-install-packages/20139][1]]) ([[https://stop-using-nix-env.privatevoid.net/][2]]).
   Yet the documentation doesn't mention any of it's shortcomings and it doesn't exactly have a great replacement.
@@ -74,16 +84,16 @@ Grafts are Guix' way of not rebuilding the world when an important security is r
   - [[https://nixos.wiki/wiki/Searching_packages][Searching for packages]] can be done using ~nix-env~ - but it's /extremely/ slow as it lazily evaluates the entire package database.
     - There's a new experimental method, it's better as it uses caching but it's far from perfect.
     - Guix has a proper search implementation.
-  - The CLI experience is [[https://github.com/NixOS/nix/issues/779][just bad]] (this issue is closed, but it's far from resolved in practice) - many different tools all behaving differently, all with their own pitfalls and "gotcha"s.
+  - The CLI experience is [[https://github.com/NixOS/nix/issues/779][bad]] (this issue is closed, but it's far from resolved in practice) - many different tools all behaving differently, all with their own pitfalls and "gotcha"s.
     - There's usually multiple approaches for one task.
     - There's third party tools trying to clean the experience but many of these only make the issue worse by further splitting the efforts. ([[https://github.com/peterldowns/nix-search-cli][1]] [[https://getfleek.dev/][2]] [[https://github.com/nix-community/nixpkgs-pytools][3]])
-- I could go a *lot* more in depth, but I have already spent too long on this.
 
 * Conclusion
-*WARNING: opinionated!*
+*WARNING: opinionated conclusion!*
+
 Overall Nix is a very flawed piece of software and far inferior to Guix.
-Years and years of technical issues plague the project and there seems to be little interest in actually resolving the issues.
-Guix is comparatively much newer, yet the UX is much better and there are constant improvements in the area.
+Years and years of technical issues plague the project and there seems to be little interest in actually resolving these issues.
+Guix is comparatively much newer, yet the UX is much better and there are constant improvements in many areas.
 It also has the advantage of being built from the ground up with a clear design mind.
 
 This isn't the complete document, I might come back and add more - for now I have already spent too long on this, and I think I outlined many of the issues rather clearly.
