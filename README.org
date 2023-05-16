@@ -58,7 +58,7 @@ Grafts are Guix' way of not rebuilding the world when an important security is r
 #+END_QUOTE
 To my knowledge Nix has no such thing.
 
-Nix also doesn't have FHS emulation or an equivalent to ~guix pack~.
+Nix also doesn't have an equivalent to ~guix pack~.
   - https://guix.gnu.org/manual/en/html_node/Invoking-guix-pack.html
   - https://guix.gnu.org/blog/2023/the-filesystem-hierarchy-standard-comes-to-guix-containers/
 
