@@ -51,6 +51,7 @@ Guix uses so called [[https://guix.gnu.org/manual/en/html_node/Build-Systems.htm
   - Many packages also aren't bootstrapped properly, instead patching and repackaging ~.deb~ packages and the like.
     - [[https://guix.gnu.org/en/blog/2023/the-full-source-bootstrap-building-from-source-all-the-way-down/][Guix focuses on proper bootstrapping heavily]].
   - These is a ton of patching going on to resolve FHS incompatability issues (Guix is also affected by this).
+- [[https://discourse.nixos.org/t/nixpkgss-current-development-workflow-is-not-sustainable][This]] speaks for itself...
 *** Missing features
 First of all grafts. What are they?
 #+BEGIN_QUOTE
