@@ -57,11 +57,14 @@ First of all grafts. What are they?
 #+BEGIN_QUOTE
 Grafts are Guix' way of not rebuilding the world when an important security is rolled out. Basically, they allow you to build and link against old versions of a library while running the program against a new one. Traditional distros do that all the time and you don't even notice, but on Guix you actually have two versions of that library still lying around. The ungrafted one and the grafted one. -- Guix documentation
 #+END_QUOTE
-To my knowledge Nix has no such thing.
++To my knowledge Nix has no such thing.+
+- Thank you to user [[https://github.com/dali99][dali99]] for correcting me here - [[https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/replace-dependency.nix][Nix does in fact have a mechanism similar to Guix's grafts]], however it isn't used and it doesn't seem recursive application is supported either.
 
-Nix also doesn't have an equivalent to ~guix pack~.
+
++Nix also doesn't have an equivalent to ~guix pack~.+
   - https://guix.gnu.org/manual/en/html_node/Invoking-guix-pack.html
   - https://guix.gnu.org/blog/2023/the-filesystem-hierarchy-standard-comes-to-guix-containers/
+- Nix does in fact have ~nix bundle~ now as a part of the flake CLI (thanks again to [[https://github.com/dali99][dali99]] for the correction).
 
 ** User experience issues
 *** Documentation
